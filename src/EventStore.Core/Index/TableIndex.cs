@@ -520,7 +520,7 @@ namespace EventStore.Core.Index
         public void Close(bool removeFiles = true)
         {
             if (!_backgroundRunningEvent.Wait(7000))
-				throw new TimeoutException(string.Format("Table Index : Could not finish background thread in reasonable time. Background running {0}", _backgroundRunning));
+				throw new TimeoutException(string.Format("Table Index : Could not finish background thread in reasonable time. Background running {0} awaiting tables {1}", _backgroundRunning, _awaitingMemTables.Count));
             if (_inMem)
                 return;
             if (_indexMap == null) return;
