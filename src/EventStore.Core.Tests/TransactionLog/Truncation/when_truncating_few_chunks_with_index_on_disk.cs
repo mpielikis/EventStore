@@ -42,12 +42,6 @@ namespace EventStore.Core.Tests.TransactionLog.Truncation
             Assert.IsTrue(File.Exists(_chunk3));
         }
 
-		protected override void OnBeforeTruncating()
-		{
-			var res = ReadIndex.ReadEvent("ES", 6);
-			Assert.IsTrue(res.Result == ReadEventResult.Success, "Could not read the last event");
-		}
-
         private string GetChunkName(int chunkNumber)
         {
             var allVersions = Db.Config.FileNamingStrategy.GetAllVersionsFor(chunkNumber);
