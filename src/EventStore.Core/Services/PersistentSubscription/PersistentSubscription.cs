@@ -260,12 +260,21 @@ namespace EventStore.Core.Services.PersistentSubscription
         {
             lock (_lock)
             {
+                Log.Debug("Connection {0} removing, _pushClients.Count = {1}", connectionId, _pushClients.Count);
+
+
                 var lostMessages =
                     _pushClients.RemoveClientByConnectionId(connectionId).OrderBy(v => v.OriginalEventNumber);
+
+                int i = 0;
+
                 foreach (var m in lostMessages)
                 {
                     RetryMessage(m, 0);
+                    i++;
                 }
+
+                Log.Debug("Connection {0} removed with {1} messages, _pushClients.Count = {2}", connectionId, i, _pushClients.Count);
 
                 TryPushingMessagesToClients();
             }

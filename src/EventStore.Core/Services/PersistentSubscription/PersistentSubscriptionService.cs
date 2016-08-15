@@ -130,6 +130,9 @@ namespace EventStore.Core.Services.PersistentSubscription
         public void Handle(ClientMessage.UnsubscribeFromStream message)
         {
             if (!_started) return;
+
+            Log.Debug("UnsubscribeFromStream {0}", message.CorrelationId);
+
             UnsubscribeFromStream(message.CorrelationId, true);
         }
 
@@ -416,6 +419,7 @@ namespace EventStore.Core.Services.PersistentSubscription
             if (_subscriptionsById == null) return; //havn't built yet.
             foreach (var subscription in _subscriptionsById.Values)
             {
+                Log.Debug("Remove connection {0} by connectionId {1}", message.Connection.RemoteEndPoint, message.Connection.ConnectionId);
                 subscription.RemoveClientByConnectionId(message.Connection.ConnectionId);
             }
         }
