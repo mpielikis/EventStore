@@ -264,6 +264,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                     _pushClients.RemoveClientByConnectionId(connectionId).OrderBy(v => v.OriginalEventNumber);
                 foreach (var m in lostMessages)
                 {
+                    Log.Debug("Remove client {0}. Retry lost message", connectionId);
                     RetryMessage(m, 0);
                 }
 
@@ -279,6 +280,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                     .OrderBy(v => v.OriginalEventNumber);
                 foreach (var m in lostMessages)
                 {
+                    Log.Debug("Remove correlation {0}. Retry lost message", correlationId);
                     RetryMessage(m, 0);
                 }
 
@@ -288,11 +290,16 @@ namespace EventStore.Core.Services.PersistentSubscription
 
         public void TryMarkCheckpoint(bool isTimeCheck)
         {
+            Log.Debug("TryMarkCheckpoint isTimeCheck={0} {1}", isTimeCheck, _settings.EventStreamId);
+
             lock (_lock)
             {
                 var lowest = _outstandingMessages.GetLowestPosition();
                 //TODO? COMPETING better to make -1? as of now we are inclusive of checkpoint.
                 var lowestBufferedRetry = _streamBuffer.GetLowestRetry();
+
+                Log.Debug("TryMarkCheckpoint isTimeCheck={0} lowest={1} lowestBufferedRetry={2} {3}", isTimeCheck, lowest, lowestBufferedRetry, _settings.EventStreamId);
+
                 lowest = Math.Min(lowest, lowestBufferedRetry);
                 if (lowest == int.MinValue) lowest = _lastKnownMessage;
                 if (lowest == 0) return;
@@ -301,14 +308,22 @@ namespace EventStore.Core.Services.PersistentSubscription
                 var difference = lowest - _lastCheckPoint;
                 var now = DateTime.UtcNow;
                 var timedifference = now - _lastCheckPointTime;
+
+                Log.Debug("TryMarkCheckpoint timedifference={0} _settings.CheckPointAfter={1} difference={2} _settings.MaxCheckPointCount={3} {4}", timedifference, _settings.CheckPointAfter, difference, _settings.MaxCheckPointCount, _settings.EventStreamId);
+
                 if (timedifference < _settings.CheckPointAfter && difference < _settings.MaxCheckPointCount) return;
                 if ((difference >= _settings.MinCheckPointCount && isTimeCheck) ||
                     difference >= _settings.MaxCheckPointCount)
                 {
+
+
                     _lastCheckPointTime = now;
                     _lastCheckPoint = lowest;
                     _settings.CheckpointWriter.BeginWriteState(lowest);
                     _statistics.SetLastCheckPoint(lowest);
+
+                    Log.Debug("SetLastCheckPoint timedifference={0} _settings.CheckPointAfter={1} difference={2} _settings.MaxCheckPointCount={3} {4}", timedifference, _settings.CheckPointAfter, difference, _settings.MaxCheckPointCount, _settings.EventStreamId);
+
                 }
             }
         }
@@ -360,6 +375,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                     {
                         if (!ActionTakenForRetriedMessage(e))
                         {
+                            Log.Debug("Handle Nacked. Retry message {0} {1} {2} {3}", id, action, reason);
                             RetryMessage(e.ResolvedEvent, e.RetryCount);
                         }
                     }
@@ -509,6 +525,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                 {
                     if (!ActionTakenForRetriedMessage(message))
                     {
+                        Log.Debug("Notify tick {0}. Retry", time);
                         RetryMessage(message.ResolvedEvent, message.RetryCount);
                     }
                 }
