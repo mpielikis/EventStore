@@ -30,6 +30,13 @@ namespace EventStore.Core.Services.PersistentSubscription
         private DateTime _lastCheckPointTime = DateTime.MinValue;
         private readonly PersistentSubscriptionParams _settings;
         private long _lastKnownMessage = -1;
+
+        public ConsumerPushResult LastPushResult = ConsumerPushResult.Sent;
+        public DateTime LastPushClientsTime = DateTime.MinValue;
+        public DateTime LastPushMessageTime = DateTime.MinValue;
+        public DateTime LastReadBatchTime = DateTime.MinValue;
+
+
         private readonly object _lock = new object();
         public bool HasClients
         {
@@ -109,6 +116,8 @@ namespace EventStore.Core.Services.PersistentSubscription
         {
             lock (_lock)
             {
+                LastReadBatchTime = DateTime.Now;
+
                 if ((_state & PersistentSubscriptionState.OutstandingPageRequest) > 0) return;
                 if (_streamBuffer.Live)
                 {
@@ -117,6 +126,8 @@ namespace EventStore.Core.Services.PersistentSubscription
                 }
                 if (!_streamBuffer.CanAccept(_settings.ReadBatchSize)) return;
                 _state |= PersistentSubscriptionState.OutstandingPageRequest;
+
+
                 _settings.StreamReader.BeginReadEvents(_settings.EventStreamId, _nextEventToPullFrom,
                     Math.Max(_settings.ReadBatchSize, 10), _settings.ReadBatchSize, _settings.ResolveLinkTos,
                     HandleReadCompleted);
@@ -173,12 +184,16 @@ namespace EventStore.Core.Services.PersistentSubscription
         {
             lock (_lock)
             {
+                LastPushClientsTime = DateTime.Now;
+
                 if (_state == PersistentSubscriptionState.NotReady) return;
 
                 foreach (StreamBuffer.OutstandingMessagePointer messagePointer in _streamBuffer.Scan())
                 {
                     OutstandingMessage message = messagePointer.Message;
                     ConsumerPushResult result = _pushClients.PushMessageToClient(message.ResolvedEvent);
+                    LastPushResult = result;
+                    LastPushMessageTime = DateTime.Now;
                     if (result == ConsumerPushResult.Sent)
                     {
                         messagePointer.MarkSent();

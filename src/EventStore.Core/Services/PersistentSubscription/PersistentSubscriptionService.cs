@@ -33,6 +33,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                                         IHandle<ClientMessage.UpdatePersistentSubscription>,
                                         IHandle<ClientMessage.DeletePersistentSubscription>,
                                         IHandle<ClientMessage.ReadNextNPersistentMessages>,
+                                        IHandle<ClientMessage.RestartPersistentSubscriptionService>,
                                         IHandle<MonitoringMessage.GetAllPersistentSubscriptionStats>,
                                         IHandle<MonitoringMessage.GetPersistentSubscriptionStats>,
                                         IHandle<MonitoringMessage.GetStreamPersistentSubscriptionStats>
@@ -633,6 +634,20 @@ namespace EventStore.Core.Services.PersistentSubscription
             subscription.RetrySingleMessage(message.Event);
             message.Envelope.ReplyWith(new ClientMessage.ReplayMessagesReceived(message.CorrelationId,
                                 ClientMessage.ReplayMessagesReceived.ReplayMessagesReceivedResult.Success, ""));
+        }
+
+        public void Handle(ClientMessage.RestartPersistentSubscriptionService message)
+        {
+            Log.Debug("Subscriptions restarting");
+
+            ShutdownSubscriptions();
+            Stop();
+            _queuedHandler.RequestStop();
+
+            InitToEmpty();
+            _handleTick = true;
+            _bus.Publish(_tickRequestMessage);
+            LoadConfiguration(Start);
         }
 
         private void LoadConfiguration(Action continueWith)

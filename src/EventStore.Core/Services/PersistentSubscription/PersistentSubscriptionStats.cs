@@ -9,6 +9,14 @@ namespace EventStore.Core.Services.PersistentSubscription
     public class PersistentSubscriptionStats
     {
         
+        public long _readStarted;
+        public long _readEnded;
+        private DateTime _lastRead = DateTime.MinValue;
+        private DateTime _lastPush = DateTime.MinValue;
+
+        public long _pushingStarted;
+        public long _pushingEnded;
+
         private long _totalItems;
         private TimeSpan _lastTotalTime;
         private long _lastTotalItems;
@@ -84,6 +92,12 @@ namespace EventStore.Core.Services.PersistentSubscription
                 AveragePerSecond = avgItemsPerSecond,
                 LastProcessedEventNumber = _lastEventNumber,
                 LastKnownMessage = _lastKnownEventNumber,
+
+                LastPushClientsTime = _parent.LastPushClientsTime,
+                LastPushMessageTime = _parent.LastPushMessageTime,
+                LastPushResult = _parent.LastPushResult.ToString(),
+                LastReadBatchTime = _parent.LastReadBatchTime,
+
                 TotalItems = totalItems,
                 CountSinceLastMeasurement = lastItems,
                 CheckPointAfterMilliseconds = (int) _settings.CheckPointAfter.TotalMilliseconds,

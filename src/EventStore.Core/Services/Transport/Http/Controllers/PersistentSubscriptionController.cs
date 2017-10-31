@@ -52,6 +52,7 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
             RegisterUrlBased(service, "/subscriptions/{stream}/{subscription}/ack?ids={messageids}", HttpMethod.Post, AckMessages);
             RegisterUrlBased(service, "/subscriptions/{stream}/{subscription}/nack?ids={messageids}&action={action}", HttpMethod.Post, NackMessages);
             RegisterUrlBased(service, "/subscriptions/{stream}/{subscription}/replayParked", HttpMethod.Post, ReplayParkedMessages);
+            Register(service, "/subscription-service/restart", HttpMethod.Get, RestartSubscription, Codec.NoCodecs, DefaultCodecs);
         }
 
         private static ClientMessages.NakAction GetNackAction(HttpEntityManager manager, UriTemplateMatch match, NakAction nakAction = NakAction.Unknown)
@@ -353,6 +354,23 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
                 }, x => Log.DebugException(x, "Reply Text Content Failed."));
         }
 
+        private void RestartSubscription(HttpEntityManager http, UriTemplateMatch match)
+        {
+            if (_httpForwarder.ForwardRequest(http))
+                return;
+
+            var envelope = new NoopEnvelope();
+
+            var cmd = new ClientMessage.RestartPersistentSubscriptionService(
+                                             Guid.NewGuid(),
+                                             Guid.NewGuid(),
+                                             envelope,
+                                             http.User);
+            Publish(cmd);
+
+            http.ReplyStatus(HttpStatusCode.Accepted, "", exception => { });
+        }
+
         private SubscriptionConfigData ParseConfig(SubscriptionConfigData config)
         {
             if (config == null)
@@ -624,6 +642,12 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
                     AverageItemsPerSecond = stat.AveragePerSecond,
                     TotalItemsProcessed = stat.TotalItems,
                     CountSinceLastMeasurement = stat.CountSinceLastMeasurement,
+
+                    LastPushClientsTime = stat.LastPushClientsTime,
+                    LastPushMessageTime = stat.LastPushMessageTime,
+                    LastPushResult = stat.LastPushResult,
+                    LastReadBatchTime = stat.LastReadBatchTime,
+
                     LastKnownEventNumber = stat.LastKnownMessage,
                     LastProcessedEventNumber = stat.LastProcessedEventNumber,
                     ReadBufferCount = stat.ReadBufferCount,
@@ -757,6 +781,11 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
 
         public class SubscriptionInfo
         {
+            public DateTime LastPushClientsTime { get; set; }
+            public DateTime LastPushMessageTime { get; set; }
+            public DateTime LastReadBatchTime { get; set; }
+            public string LastPushResult { get; set; }
+
             public List<RelLink> Links { get; set; }
             public SubscriptionConfigData Config { get; set; }
             public string EventStreamId { get; set; }

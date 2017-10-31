@@ -1187,6 +1187,17 @@ namespace EventStore.Core.Messages
             }
         }
 
+        public class RestartPersistentSubscriptionService : ReadRequestMessage
+        {
+            private static readonly int TypeId = Interlocked.Increment(ref NextMsgId);
+            public override int MsgTypeId { get { return TypeId; } }
+
+            public RestartPersistentSubscriptionService(Guid internalCorrId, Guid correlationId, IEnvelope envelope, IPrincipal user)
+                : base(internalCorrId, correlationId, envelope, user)
+            {
+            }
+        }
+
         public class PersistentSubscriptionConfirmation : Message
         {
             private static readonly int TypeId = Interlocked.Increment(ref NextMsgId);

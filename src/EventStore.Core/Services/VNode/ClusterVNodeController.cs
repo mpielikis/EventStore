@@ -136,6 +136,7 @@ namespace EventStore.Core.Services.VNode
                     .When<ClientMessage.TransactionCommit>().ForwardTo(_outputBus)
                     .When<ClientMessage.DeleteStream>().ForwardTo(_outputBus)
                     .When<ClientMessage.CreatePersistentSubscription>().ForwardTo(_outputBus)
+                    .When<ClientMessage.RestartPersistentSubscriptionService>().ForwardTo(_outputBus)
                     .When<ClientMessage.ConnectToPersistentSubscription>().ForwardTo(_outputBus)
                     .When<ClientMessage.UpdatePersistentSubscription>().ForwardTo(_outputBus)
                     .When<ClientMessage.DeletePersistentSubscription>().ForwardTo(_outputBus)

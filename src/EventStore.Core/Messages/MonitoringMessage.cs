@@ -97,6 +97,13 @@ namespace EventStore.Core.Messages
             public long CountSinceLastMeasurement { get; set; }
             public long LastProcessedEventNumber { get; set; }
             public long LastKnownMessage { get; set; }
+
+            public DateTime LastPushClientsTime { get; set; }
+            public DateTime LastPushMessageTime { get; set; }
+            public DateTime LastReadBatchTime { get; set; }
+            public string LastPushResult { get; set; }
+
+
             public bool ResolveLinktos { get; set; }
             public long StartFrom { get; set; }
             public int MessageTimeoutMilliseconds { get; set; }
