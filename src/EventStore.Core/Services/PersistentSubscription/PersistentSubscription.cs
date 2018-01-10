@@ -35,6 +35,7 @@ namespace EventStore.Core.Services.PersistentSubscription
         public DateTime LastPushClientsTime = DateTime.MinValue;
         public DateTime LastPushMessageTime = DateTime.MinValue;
         public DateTime LastReadBatchTime = DateTime.MinValue;
+        public DateTime LastNotifyLiveMessageTime = DateTime.MinValue;
 
 
         private readonly object _lock = new object();
@@ -217,6 +218,8 @@ namespace EventStore.Core.Services.PersistentSubscription
         {
             lock (_lock)
             {
+                LastNotifyLiveMessageTime = DateTime.Now;
+
                 if (resolvedEvent.OriginalEvent.EventNumber < _settings.StartFrom) return;
                 if (_state == PersistentSubscriptionState.NotReady) return;
                 _statistics.SetLastKnownEventNumber(resolvedEvent.OriginalEventNumber);

@@ -97,6 +97,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                 LastPushMessageTime = _parent.LastPushMessageTime,
                 LastPushResult = _parent.LastPushResult.ToString(),
                 LastReadBatchTime = _parent.LastReadBatchTime,
+                LastNotifyLiveMessageTime = _parent.LastNotifyLiveMessageTime,
 
                 TotalItems = totalItems,
                 CountSinceLastMeasurement = lastItems,

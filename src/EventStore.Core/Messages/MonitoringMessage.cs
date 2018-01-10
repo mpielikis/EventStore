@@ -101,6 +101,7 @@ namespace EventStore.Core.Messages
             public DateTime LastPushClientsTime { get; set; }
             public DateTime LastPushMessageTime { get; set; }
             public DateTime LastReadBatchTime { get; set; }
+            public DateTime LastNotifyLiveMessageTime { get; set; }
             public string LastPushResult { get; set; }
 
 

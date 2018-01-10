@@ -647,6 +647,7 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
                     LastPushMessageTime = stat.LastPushMessageTime,
                     LastPushResult = stat.LastPushResult,
                     LastReadBatchTime = stat.LastReadBatchTime,
+                    LastNotifyLiveMessageTime = stat.LastNotifyLiveMessageTime,
 
                     LastKnownEventNumber = stat.LastKnownMessage,
                     LastProcessedEventNumber = stat.LastProcessedEventNumber,
@@ -784,6 +785,7 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
             public DateTime LastPushClientsTime { get; set; }
             public DateTime LastPushMessageTime { get; set; }
             public DateTime LastReadBatchTime { get; set; }
+            public DateTime LastNotifyLiveMessageTime { get; set; }
             public string LastPushResult { get; set; }
 
             public List<RelLink> Links { get; set; }
